@@ -4,8 +4,8 @@ export const CURATOR_URL = 'https://chatgpt.com/g/g-6a5a82ec465481918ad747ec7f11
 const COURSE_ID = '01_ai_fundamentals';
 
 const statusMap = {
-  planned: { label: 'Запланирован', button: 'О курсе', className: '' },
-  preparing: { label: 'Готовится к запуску', button: 'Подробнее', className: 'badge-preparing' },
+  planned: { label: 'Скоро', button: 'О курсе', className: '' },
+  preparing: { label: 'Тестовый доступ', button: 'Посмотреть', className: 'badge-preparing' },
   available: { label: 'Доступен', button: 'Начать курс', className: 'badge-available' }
 };
 
@@ -15,7 +15,7 @@ function escapeHtml(value) {
 
 function courseAction(course) {
   const progress = getCourseProgress(course.id);
-  if (progress.startedAt && course.id === COURSE_ID) return { label: 'Продолжить', href: `#/course/${course.id}/lesson/${progress.lastOpenedLesson || 1}` };
+  if (progress.startedAt && course.id === COURSE_ID) return { label: 'Продолжить обучение', href: `#/course/${course.id}/lesson/${progress.lastOpenedLesson || 1}` };
   return { label: statusMap[course.status]?.button || 'О курсе', href: `#/course/${course.id}` };
 }
 
@@ -25,46 +25,59 @@ function courseCard(course) {
   const progress = getCourseProgress(course.id);
   const percent = course.lessons ? Math.round(((progress.completedLessons || []).length / course.lessons) * 100) : 0;
   return `<article class="course-card" style="--marker:${escapeHtml(course.marker)}">
+    <div class="course-card-top"><span class="course-index">${String(course.order).padStart(2, '0')}</span><span class="badge ${status.className}">${status.label}</span></div>
     <div class="course-marker" aria-hidden="true"></div>
-    <span class="badge ${status.className}">${status.label}</span>
     <h3>${escapeHtml(course.title)}</h3>
-    <p>${escapeHtml(course.promise)}</p>
+    <p class="course-promise">${escapeHtml(course.promise)}</p>
     <div class="meta"><span>${escapeHtml(course.level)}</span><span>${course.lessons} уроков</span><span>${escapeHtml(course.time)}</span></div>
-    <p><strong>После курса:</strong> ${escapeHtml(course.after)}</p>
-    ${progress.startedAt ? `<div><div class="cluster small"><span>Прогресс</span><strong>${percent}%</strong></div><progress class="progress" max="100" value="${percent}">${percent}%</progress></div>` : ''}
-    <a class="button ${course.id === COURSE_ID ? 'button-primary' : ''}" href="${action.href}">${action.label}</a>
+    <div class="course-result"><span>Результат</span><strong>${escapeHtml(course.after)}</strong></div>
+    ${progress.startedAt ? `<div class="course-progress"><div class="progress-caption"><span>Пройдено</span><strong>${percent}%</strong></div><progress class="progress" max="100" value="${percent}">${percent}%</progress></div>` : ''}
+    <a class="button ${course.id === COURSE_ID ? 'button-primary' : ''}" href="${action.href}">${action.label}<span aria-hidden="true">→</span></a>
   </article>`;
 }
 
 export function homeView(courses) {
+  const firstCourse = courses.find((course) => course.id === COURSE_ID);
+  const firstAction = firstCourse ? courseAction(firstCourse) : { label: 'Смотреть курсы', href: '#/courses' };
   return `<section class="hero"><div class="container hero-grid">
-    <div class="hero-copy"><div class="eyebrow">Практические курсы для быстрого освоения навыков работы с нейросетями</div><h1>ЛЁГКИЙ <span>СТАРТ</span></h1><p class="lead">Выберите курс, выполняйте практические задания и получайте обратную связь от GPTs-нейрокуратора в своём аккаунте.</p><div class="cluster"><a class="button button-accent" href="#/courses">Выбрать курс</a><a class="button button-ghost" href="#how-it-works">Как проходит обучение</a></div></div>
-    <aside class="hero-panel"><strong>Вы не просто читаете уроки</strong><ol><li>Берёте реальную задачу.</li><li>Создаёте проверяемый результат.</li><li>Исправляете ошибки с нейрокуратором.</li><li>Сохраняете готовый рабочий процесс.</li></ol></aside>
+    <div class="hero-copy">
+      <div class="eyebrow">Самостоятельное обучение с нейрокуратором</div>
+      <h1>Осваивайте ИИ через <em>реальные задачи</em></h1>
+      <p class="lead">Короткие практические курсы, в которых каждое занятие заканчивается результатом, проверкой и готовым способом работы.</p>
+      <div class="cluster"><a class="button button-accent" href="${firstAction.href}">${firstAction.label}<span aria-hidden="true">→</span></a><a class="text-link" href="#how-it-works">Как устроено обучение</a></div>
+      <div class="trust-row"><span>В своём темпе</span><span>Практика на вашей задаче</span><span>Без живого куратора</span></div>
+    </div>
+    <aside class="hero-panel">
+      <div class="hero-panel-kicker">Первый маршрут</div>
+      <span class="hero-course-number">01</span>
+      <h2>Основы работы с нейросетями</h2>
+      <p>От случайных запросов — к понятному и проверяемому рабочему процессу.</p>
+      <div class="hero-metrics"><span><strong>6</strong> уроков</span><span><strong>7–9</strong> часов</span></div>
+      <a class="button button-light button-block" href="#/course/${COURSE_ID}">Посмотреть программу</a>
+    </aside>
   </div></section>
-  <section id="how-it-works" class="section section-alt"><div class="container"><div class="page-head"><div class="eyebrow">Методика</div><h2>Один цикл в каждом уроке</h2></div><div class="steps-grid"><div class="step"><span class="step-number">01</span><h3>Изучить</h3><p>Короткий материал и пример.</p></div><div class="step"><span class="step-number">02</span><h3>Выполнить</h3><p>Практика на собственной задаче.</p></div><div class="step"><span class="step-number">03</span><h3>Проверить</h3><p>Разбор с GPTs-нейрокуратором.</p></div><div class="step"><span class="step-number">04</span><h3>Сохранить</h3><p>Файл урока и обновлённый паспорт.</p></div></div></div></section>
-  <section class="section"><div class="container"><div class="page-head"><div class="eyebrow">Каталог</div><h2>Начните с нужного навыка</h2><p class="lead">Первый курс создаёт базовый процесс работы с AI. Остальные направления будут добавляться последовательно.</p></div><div class="cards-grid">${courses.slice(0, 3).map(courseCard).join('')}</div><div class="cluster" style="margin-top:24px"><a class="button button-primary" href="#/courses">Все курсы</a></div></div></section>
-  <section class="section section-alt"><div class="container two-column"><div><div class="eyebrow">GPTs-нейрокуратор</div><h2>Подсказки и проверка — в вашем ChatGPT</h2><p class="lead">Нейрокуратор объясняет материал, проверяет работу по рубрике и показывает ошибки. Он не выполняет итоговую работу вместо вас.</p></div><div class="panel stack"><strong>Ответственность остаётся у обучающегося</strong><p class="muted">Оценка нейрокуратора носит рекомендательный характер. Вы сами решаете, когда переходить дальше и как применять результат.</p><a class="button" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть нейрокуратора</a></div></div></section>`;
+  <section class="proof-strip"><div class="container proof-grid"><div><strong>01</strong><span>Изучаете только нужное</span></div><div><strong>02</strong><span>Сразу применяете</span></div><div><strong>03</strong><span>Получаете разбор</span></div><div><strong>04</strong><span>Сохраняете результат</span></div></div></section>
+  <section id="how-it-works" class="section"><div class="container"><div class="section-heading"><div><div class="eyebrow">Методика</div><h2>Один понятный цикл<br>в каждом уроке</h2></div><p class="lead">Не нужно запоминать десятки функций. Вы проходите один и тот же рабочий путь, пока он не станет привычным.</p></div><div class="steps-grid"><div class="step"><span class="step-number">01</span><h3>Разобраться</h3><p>Короткий материал без лишней теории.</p></div><div class="step"><span class="step-number">02</span><h3>Сделать</h3><p>Практика на реальной или учебной задаче.</p></div><div class="step"><span class="step-number">03</span><h3>Проверить</h3><p>Нейрокуратор покажет ошибки и следующий шаг.</p></div><div class="step"><span class="step-number">04</span><h3>Сохранить</h3><p>Готовый результат остаётся у вас.</p></div></div></div></section>
+  <section class="section section-alt"><div class="container"><div class="section-heading"><div><div class="eyebrow">Программы</div><h2>Начните с нужного навыка</h2></div><p class="lead">Первый курс создаёт фундамент. Следующие программы расширяют его под конкретные инструменты и задачи.</p></div><div class="cards-grid">${courses.slice(0, 3).map(courseCard).join('')}</div><div class="section-action"><a class="button button-primary" href="#/courses">Все направления<span aria-hidden="true">→</span></a></div></div></section>
+  <section class="section curator-section"><div class="container curator-grid"><div><div class="eyebrow eyebrow-light">Личный нейрокуратор</div><h2>Поддержка остаётся рядом на каждом шаге</h2><p>Нейрокуратор объясняет, задаёт вопросы, проверяет работу и помогает увидеть ошибку. Итоговое решение всегда остаётся за вами.</p></div><div class="curator-card"><span class="curator-mark">AI</span><div><strong>Работает в вашем ChatGPT</strong><p>Ваш прогресс переносится между уроками с помощью паспорта обучения.</p></div><a class="button button-light" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть нейрокуратора</a></div></div></section>`;
 }
 
 export function coursesView(courses) {
-  return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Лёгкий старт</div><h1>Каталог курсов</h1><p class="lead">Практические программы самостоятельного обучения: от базовой постановки задач до видео, приложений и автоматизации.</p></div><div class="cards-grid">${courses.map(courseCard).join('')}</div></div></section>`;
+  return `<section class="page"><div class="container"><div class="page-head page-head-wide"><div class="eyebrow">Лёгкий старт</div><h1>Практические курсы<br><em>по работе с ИИ</em></h1><p class="lead">Выберите навык и двигайтесь от первого упражнения к собственному рабочему процессу.</p></div><div class="cards-grid">${courses.map(courseCard).join('')}</div></div></section>`;
 }
 
 export function courseView(course, lessons) {
   if (!course) return notFoundView();
   if (course.id !== COURSE_ID) {
-    return `<section class="page"><div class="container"><div class="page-head"><span class="badge">${statusMap[course.status].label}</span><h1>${escapeHtml(course.title)}</h1><p class="lead">${escapeHtml(course.promise)}</p></div><div class="panel stack"><h2>Что вы получите</h2><p>${escapeHtml(course.after)}</p><div class="meta"><span>${escapeHtml(course.level)}</span><span>${course.lessons} уроков</span><span>${escapeHtml(course.time)}</span></div><p class="notice">Программа курса будет опубликована после подготовки материалов и нейрокуратора.</p><a class="button" href="#/courses">Вернуться в каталог</a></div></div></section>`;
+    return `<section class="page"><div class="container"><div class="coming-soon"><span class="badge">${statusMap[course.status].label}</span><div class="eyebrow">Новое направление</div><h1>${escapeHtml(course.title)}</h1><p class="lead">${escapeHtml(course.promise)}</p><div class="course-result"><span>После курса</span><strong>${escapeHtml(course.after)}</strong></div><div class="meta"><span>${escapeHtml(course.level)}</span><span>${course.lessons} уроков</span><span>${escapeHtml(course.time)}</span></div><a class="button" href="#/courses">← Вернуться к курсам</a></div></div></section>`;
   }
   const progress = getCourseProgress(course.id);
   const completed = new Set(progress.completedLessons || []);
   const actionLesson = progress.lastOpenedLesson || 1;
-  return `<section class="page"><div class="container two-column"><div class="stack"><div class="page-head"><span class="badge badge-preparing">Готовится к запуску</span><h1>${escapeHtml(course.title)}</h1><p class="lead">${escapeHtml(course.promise)}</p></div><div class="stats"><div class="stat"><span class="muted small">Уроки</span><strong>6</strong><span>практических этапов</span></div><div class="stat"><span class="muted small">Нагрузка</span><strong>7–9 ч</strong><span>в своём темпе</span></div><div class="stat"><span class="muted small">Результат</span><strong>1</strong><span>готовый AI-процесс</span></div></div><div><h2>Программа</h2><div class="lesson-list">${lessons.map((lesson) => `<div class="lesson-item"><span class="lesson-number">${String(lesson.id).padStart(2, '0')}</span><div><h3>${escapeHtml(lesson.title)}</h3><p>${escapeHtml(lesson.goal)}</p></div>${completed.has(lesson.id) ? '<span class="lesson-done">Завершён</span>' : `<a class="button" href="#/course/${course.id}/lesson/${lesson.id}">Открыть</a>`}</div>`).join('')}</div></div></div>
-  <aside class="panel sticky-panel stack"><h3>Перед началом</h3><ol><li>Скачайте стартовый комплект.</li><li>Создайте папку для работ.</li><li>Откройте нейрокуратора.</li></ol><a class="button button-primary button-block" href="#/course/${course.id}/lesson/${actionLesson}">${progress.startedAt ? 'Продолжить курс' : 'Посмотреть урок 1'}</a><a class="button button-block" href="downloads/LIGHT_START_COURSE_01_STARTER_KIT.zip" download>Скачать комплект</a><a class="button button-block" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть нейрокуратора</a><p class="notice small">Личные документы не загружаются на сайт. Передавайте их в ChatGPT только после обезличивания.</p></aside></div></section>`;
-}
-
-function chips(items) {
-  if (!items?.length) return '<span class="muted small">На первом уроке файлы не требуются.</span>';
-  return items.map((item) => `<span class="file-chip">${escapeHtml(item)}</span>`).join('');
+  const completedCount = completed.size;
+  return `<section class="course-hero"><div class="container course-hero-grid"><div><div class="eyebrow eyebrow-light">Курс 01 · Тестовый доступ</div><h1>${escapeHtml(course.title)}</h1><p class="lead">${escapeHtml(course.promise)}</p><div class="cluster"><a class="button button-accent" href="#/course/${course.id}/lesson/${actionLesson}">${progress.startedAt ? 'Продолжить обучение' : 'Начать с первого урока'}<span aria-hidden="true">→</span></a><a class="button button-outline-light" href="downloads/LIGHT_START_COURSE_01_STARTER_KIT.zip" download>Скачать материалы</a></div></div><div class="course-hero-result"><span>Итог курса</span><strong>Собственный проверенный процесс работы с ИИ</strong><p>Не набор советов, а способ решать одну вашу регулярную задачу.</p></div></div></section>
+  <section class="section"><div class="container course-program-grid"><div><div class="section-heading compact"><div><div class="eyebrow">Программа</div><h2>Шесть шагов к рабочей системе</h2></div><p class="lead">Проходите последовательно. Результат каждого урока становится основой следующего.</p></div><div class="lesson-list">${lessons.map((lesson) => `<article class="lesson-item ${completed.has(lesson.id) ? 'is-complete' : ''}"><span class="lesson-number">${String(lesson.id).padStart(2, '0')}</span><div><span class="lesson-duration">${escapeHtml(lesson.duration)}</span><h3>${escapeHtml(lesson.title)}</h3><p>${escapeHtml(lesson.goal)}</p></div>${completed.has(lesson.id) ? '<span class="lesson-done">Готово</span>' : `<a class="button button-small" href="#/course/${course.id}/lesson/${lesson.id}">Открыть урок</a>`}</article>`).join('')}</div></div>
+  <aside class="course-sidebar"><div class="progress-card"><div class="progress-ring" style="--progress:${Math.round((completedCount / 6) * 360)}deg"><span>${completedCount}/6</span></div><div><span class="eyebrow">Ваш прогресс</span><h3>${completedCount ? 'Продолжайте в своём темпе' : 'Всё готово для старта'}</h3></div><progress class="progress" max="6" value="${completedCount}">${completedCount} из 6</progress><a class="button button-primary button-block" href="#/course/${course.id}/lesson/${actionLesson}">${progress.startedAt ? 'Продолжить' : 'Открыть урок 1'}</a></div><div class="privacy-note"><strong>Ваши материалы остаются у вас</strong><p>Сайт не загружает и не хранит документы. Для проверки вы самостоятельно передаёте обезличенные материалы нейрокуратору.</p></div></aside></div></section>`;
 }
 
 function templateUrl(item) {
@@ -72,48 +85,46 @@ function templateUrl(item) {
   return `downloads/templates/${item}`;
 }
 
+function friendlyFileLabel(item) {
+  if (item.includes('ПАСПОРТ_ОБУЧЕНИЯ')) return 'Паспорт обучения';
+  if (item.includes('task_card_and_baseline')) return 'Карточка задачи и исходный результат';
+  if (item.includes('outcome_and_context')) return 'Описание результата и контекста';
+  if (item.includes('prompt_v1_and_result')) return 'Первая версия запроса и результат';
+  if (item.includes('quality_matrix_and_prompt_v2')) return 'Проверка качества и улучшенный запрос';
+  if (item.includes('audit_and_revision')) return 'Аудит и исправленная версия';
+  if (item.includes('demo_customer_reviews_new_week')) return 'Новая неделя учебных отзывов';
+  if (item.includes('demo_customer_reviews')) return 'Учебные отзывы клиентов';
+  if (item.endsWith('/')) return 'Комплект рабочего процесса';
+  return 'Материал урока';
+}
+
 function labeledFiles(items, mode = 'upload') {
-  if (!items?.length) return '<span class="muted small">Дополнительные файлы не требуются.</span>';
-  return items.map((item) => {
-    let label = 'Файл предыдущего урока';
-    let description = 'Возьмите заполненный файл, который сохранили после предыдущего урока.';
-    let downloadLabel = mode === 'save' ? 'Скачать шаблон для заполнения' : 'Нет файла? Скачать пустой шаблон';
+  if (!items?.length) return '<p class="supporting-text">Дополнительные материалы не понадобятся.</p>';
+  return `<div class="resource-list">${items.map((item) => {
+    const label = friendlyFileLabel(item);
+    let description = 'Возьмите заполненную работу, которую сохранили после предыдущего урока.';
+    let actionLabel = 'Восстановить шаблон';
     if (mode === 'practice') {
-      label = 'Учебные данные для примера';
-      description = 'Скачайте файл, если хотите повторить демонстрацию из урока.';
-      downloadLabel = 'Скачать учебные данные';
-    }
-    if (item.includes('ПАСПОРТ_ОБУЧЕНИЯ')) label = 'Обновлённый паспорт обучения';
-    else if (item.endsWith('/')) {
-      label = 'Комплект итогового AI-процесса';
-      downloadLabel = 'Скачать комплект шаблонов';
-    } else if (/^0\d_урок\//.test(item)) label = 'Итоговая работа урока';
-
-    const lessonMatch = item.match(/^(\d\d)_урок\//);
-    if (mode === 'save') {
-      description = item.includes('ПАСПОРТ_ОБУЧЕНИЯ')
-        ? 'Попросите нейрокуратора создать обновлённый файл и скачайте его в папку курса.'
-        : 'Заполните шаблон в ходе урока и сохраните проверенную версию на компьютере.';
-      if (item.includes('ПАСПОРТ_ОБУЧЕНИЯ')) downloadLabel = 'Скачать пустой паспорт';
+      description = 'Необязательный пример, на котором можно повторить демонстрацию.';
+      actionLabel = 'Скачать пример';
+    } else if (mode === 'save') {
+      description = item.includes('ПАСПОРТ_ОБУЧЕНИЯ') ? 'Нейрокуратор поможет создать его после проверки.' : 'Скачайте заготовку и заполните её по ходу урока.';
+      actionLabel = item.includes('ПАСПОРТ_ОБУЧЕНИЯ') ? 'Скачать заготовку' : 'Скачать рабочий шаблон';
     } else if (mode === 'archive') {
-      description = item.includes('ПАСПОРТ_ОБУЧЕНИЯ')
-        ? 'Попросите нейрокуратора создать обновлённый файл и скачайте его в папку курса.'
-        : 'Сохраните на компьютере заполненную версию, которую только что проверили.';
-    } else if (item.includes('ПАСПОРТ_ОБУЧЕНИЯ')) {
-      description = 'Возьмите версию, которую нейрокуратор обновил после предыдущей проверки.';
-    } else if (lessonMatch) {
-      description = `Возьмите заполненный файл, сохранённый после урока ${Number(lessonMatch[1])}.`;
+      description = item.includes('ПАСПОРТ_ОБУЧЕНИЯ') ? 'Обновите и сохраните, чтобы продолжить обучение в любой момент.' : 'Сохраните проверенную версию в своей папке курса.';
     }
-
-    const passportAction = item.includes('ПАСПОРТ_ОБУЧЕНИЯ') && (mode === 'save' || mode === 'archive')
-      ? `<button class="button button-small js-copy" type="button" data-copy="ОБНОВИ ПАСПОРТ">Скопировать «ОБНОВИ ПАСПОРТ»</button><a class="button button-small" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Создать файл в GPTs</a>`
+    const passportAction = item.includes('ПАСПОРТ_ОБУЧЕНИЯ') && mode === 'archive'
+      ? `<button class="button button-small js-copy" type="button" data-copy="ОБНОВИ ПАСПОРТ">Скопировать команду</button><a class="button button-small button-primary" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Обновить с нейрокуратором</a>`
       : '';
-    const downloadAction = mode === 'archive' && !item.includes('ПАСПОРТ_ОБУЧЕНИЯ')
+    const downloadAction = mode === 'archive'
       ? ''
-      : `<a class="button button-small" href="${templateUrl(item)}" download>${downloadLabel}</a>`;
+      : `<a class="resource-link" href="${templateUrl(item)}" download>${actionLabel}<span aria-hidden="true">↓</span></a>`;
+    return `<div class="resource-card"><span class="resource-icon" aria-hidden="true">${mode === 'practice' ? '✦' : '↳'}</span><div class="resource-copy"><strong>${escapeHtml(label)}</strong><span>${description}</span><div class="resource-actions">${downloadAction}${passportAction}</div></div></div>`;
+  }).join('')}</div>`;
+}
 
-    return `<div class="file-entry"><strong>${label}</strong><span class="file-chip">${escapeHtml(item)}</span><span class="muted small">${description}</span><div class="file-actions">${downloadAction}${passportAction}</div></div>`;
-  }).join('');
+function commandRow(command, label = 'Скопировать') {
+  return `<div class="command-row"><span>${escapeHtml(command)}</span><button class="command-copy js-copy" type="button" data-copy="${escapeHtml(command)}">${label}</button></div>`;
 }
 
 export function lessonView(course, lesson, nextLesson, renderedContent) {
@@ -122,49 +133,48 @@ export function lessonView(course, lesson, nextLesson, renderedContent) {
   const completed = (progress.completedLessons || []).includes(lesson.id);
   const previous = lesson.id > 1 ? `#/course/${course.id}/lesson/${lesson.id - 1}` : `#/course/${course.id}`;
   const next = lesson.id < 6 ? `#/course/${course.id}/lesson/${lesson.id + 1}` : '#/progress';
+  const coursePercent = Math.round((lesson.id / 6) * 100);
   const inputFiles = lesson.uploadToCurator?.length
-    ? `<p class="muted small">Загрузите заполненные файлы с предыдущих уроков:</p>${labeledFiles(lesson.uploadToCurator, 'upload')}`
-    : '<span class="muted small">Для первого урока загружать файлы не нужно.</span>';
-  const practice = lesson.practiceFiles?.length
-    ? `<section class="panel stack"><span class="eyebrow">Материалы</span><h3>Учебные данные для примера</h3>${labeledFiles(lesson.practiceFiles, 'practice')}</section>`
-    : '';
-  const nextFiles = nextLesson
-    ? `<section class="panel stack"><h3>Для следующего урока подготовьте</h3>${labeledFiles(nextLesson.uploadToCurator, 'upload')}</section>`
-    : '';
-  const checklist = lesson.checklist.map((label, index) =>
-    `<label class="check-row"><input type="checkbox" class="js-lesson-check" data-index="${index}"><span>${escapeHtml(label)}</span></label>`
-  ).join('');
+    ? `<p class="supporting-text">Подготовьте результаты предыдущих уроков:</p>${labeledFiles(lesson.uploadToCurator, 'upload')}`
+    : '<p class="supporting-text">Для первого урока ничего загружать не нужно.</p>';
+  const practice = lesson.practiceFiles?.length ? `<div class="optional-material"><span>По желанию</span>${labeledFiles(lesson.practiceFiles, 'practice')}</div>` : '';
+  const nextFiles = nextLesson ? `<div class="next-prep"><strong>Перед следующим уроком</strong><p>Сохраните результаты этого занятия и обновлённый паспорт обучения.</p></div>` : '';
+  const checklist = lesson.checklist.map((label, index) => `<label class="check-row"><input type="checkbox" class="js-lesson-check" data-index="${index}"><span>${escapeHtml(label)}</span></label>`).join('');
 
-  return `<section class="page"><div class="container">
-    <div class="lesson-toolbar"><a class="button button-ghost" href="${previous}">← Назад</a><span class="badge">Урок ${lesson.id} из 6 · ${escapeHtml(lesson.duration)}</span></div>
-    <div class="lesson-layout"><article class="lesson-content markdown">${renderedContent}</article><aside class="lesson-side">
-      <section class="panel stack"><div><span class="eyebrow">Результат урока</span><h3>${escapeHtml(lesson.goal)}</h3></div></section>
-      <section class="panel stack"><span class="eyebrow">Шаг 1</span><h3>Начните урок с нейрокуратором</h3>${inputFiles}<div class="copy-row"><code>${escapeHtml(lesson.startCommand)}</code><button class="button js-copy" type="button" data-copy="${escapeHtml(lesson.startCommand)}">Копировать</button></div><a class="button button-primary button-block" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть нейрокуратора</a><p class="notice small">Проверьте право на передачу документов и удалите персональные данные, пароли, токены и секреты.</p></section>
-      ${practice}
-      <section class="panel stack"><span class="eyebrow">Шаг 2</span><h3>Выполните задание и заполните файл</h3>${labeledFiles([lesson.artifact], 'save')}</section>
-      <section class="panel stack"><span class="eyebrow">Шаг 3</span><h3>Отправьте работу на проверку</h3><p class="muted small">Загрузите в нейрокуратор заполненную итоговую работу этого урока.</p>${labeledFiles([lesson.artifact], 'upload')}<div class="copy-row"><code>${escapeHtml(lesson.reviewCommand)}</code><button class="button js-copy" type="button" data-copy="${escapeHtml(lesson.reviewCommand)}">Копировать</button></div><a class="button button-primary button-block" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть проверку в GPTs</a></section>
-      <section class="panel stack"><span class="eyebrow">Шаг 4</span><h3>После проверки сохраните</h3>${labeledFiles(lesson.saveAfterLesson, 'archive')}</section>
-      ${nextFiles}
-      <section class="panel stack"><h3>Завершение урока</h3><div class="checklist">${checklist}</div><button class="button button-accent button-block js-complete-lesson" type="button" data-course="${course.id}" data-lesson="${lesson.id}" ${completed ? '' : 'disabled'}>${completed ? 'Снять отметку о завершении' : 'Завершить урок'}</button><p class="muted small">Решение о завершении принимаете вы. Сохраните паспорт и работу на компьютере.</p></section>
-      <a class="button button-block" href="${next}">${lesson.id < 6 ? 'Следующий урок →' : 'Открыть мой прогресс'}</a>
-    </aside></div>
+  return `<section class="lesson-page"><div class="container">
+    <nav class="lesson-toolbar" aria-label="Навигация по курсу"><a class="back-link" href="${previous}">← Назад к программе</a><span>Курс 1 · Урок ${lesson.id} из 6</span></nav>
+    <header class="lesson-hero"><div><div class="eyebrow">Урок ${String(lesson.id).padStart(2, '0')}</div><h1>${escapeHtml(lesson.title)}</h1><div class="lesson-meta"><span>${escapeHtml(lesson.duration)}</span><span>Практическое занятие</span><span>В своём темпе</span></div></div><div class="lesson-outcome"><span>После урока</span><strong>${escapeHtml(lesson.goal)}</strong></div></header>
+    <div class="course-line"><span style="width:${coursePercent}%"></span></div>
+    <div class="lesson-layout">
+      <main class="lesson-main"><article class="lesson-content markdown">${renderedContent}</article></main>
+      <aside class="lesson-side">
+        <div class="journey-card"><div class="journey-head"><div><span class="eyebrow">Ваш маршрут</span><h2>Четыре шага урока</h2></div><span class="journey-count">${completed ? 'Готово' : '1 / 4'}</span></div>
+          <details class="journey-step" open><summary><span>1</span><div><small>Начало</small><strong>Откройте нейрокуратора</strong></div></summary><div class="journey-body">${inputFiles}${commandRow(lesson.startCommand)}<a class="button button-primary button-block" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Перейти к нейрокуратору<span aria-hidden="true">↗</span></a><p class="safe-hint">Передавайте только те документы, которые можно безопасно использовать для обучения.</p></div></details>
+          <details class="journey-step"><summary><span>2</span><div><small>Практика</small><strong>Выполните задание</strong></div></summary><div class="journey-body">${labeledFiles([lesson.artifact], 'save')}${practice}</div></details>
+          <details class="journey-step"><summary><span>3</span><div><small>Обратная связь</small><strong>Получите проверку</strong></div></summary><div class="journey-body"><p class="supporting-text">Загрузите заполненную работу нейрокуратору и отправьте команду:</p>${commandRow(lesson.reviewCommand)}<a class="button button-primary button-block" href="${CURATOR_URL}" target="_blank" rel="noopener noreferrer">Открыть проверку<span aria-hidden="true">↗</span></a></div></details>
+          <details class="journey-step"><summary><span>4</span><div><small>Завершение</small><strong>Сохраните результат</strong></div></summary><div class="journey-body">${labeledFiles(lesson.saveAfterLesson, 'archive')}${nextFiles}</div></details>
+        </div>
+        <section class="completion-card"><div><span class="eyebrow">Готовность</span><h3>Проверьте себя</h3></div><div class="checklist">${checklist}</div><button class="button button-accent button-block js-complete-lesson" type="button" data-course="${course.id}" data-lesson="${lesson.id}" ${completed ? '' : 'disabled'}>${completed ? 'Урок завершён' : 'Завершить урок'}</button><p>Отметка сохраняется только в вашем браузере.</p></section>
+        <a class="next-lesson-link" href="${next}"><span>${lesson.id < 6 ? 'Следующий урок' : 'Мой прогресс'}</span><strong>${lesson.id < 6 ? escapeHtml(nextLesson?.shortTitle || '') : 'Посмотреть результаты'}</strong><b aria-hidden="true">→</b></a>
+      </aside>
+    </div>
   </div></section>`;
 }
 
 export function progressView(courses) {
   const started = courses.map((course) => ({ course, progress: getCourseProgress(course.id) })).filter((item) => item.progress.startedAt);
-  if (!started.length) return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Навигация</div><h1>Мой прогресс</h1><p class="lead">Сайт запоминает открытый курс и завершённые уроки только в этом браузере.</p></div><div class="empty-state stack"><h2>Пока нет начатых курсов</h2><p class="muted">Откройте первый урок, и здесь появится кнопка продолжения.</p><a class="button button-primary" href="#/courses">Выбрать курс</a></div></div></section>`;
-  return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Навигация</div><h1>Мой прогресс</h1><p class="lead">Эти отметки помогают вернуться к нужному уроку. Содержательный прогресс хранится в ваших файлах.</p></div><div class="course-progress-list">${started.map(({ course, progress }) => { const count = (progress.completedLessons || []).length; const percent = Math.round((count / course.lessons) * 100); return `<article class="panel stack"><div class="cluster"><span class="badge">${count} из ${course.lessons} уроков</span><strong>${escapeHtml(course.title)}</strong></div><progress class="progress" max="100" value="${percent}">${percent}%</progress><div class="cluster"><a class="button button-primary" href="#/course/${course.id}/lesson/${progress.lastOpenedLesson || 1}">Продолжить</a><a class="button" href="#/course/${course.id}">Открыть программу</a></div></article>`; }).join('')}</div><div class="panel stack" style="margin-top:24px"><h2>Сохраняйте паспорт обучения</h2><p>После каждого урока сохраняйте <code>ПАСПОРТ_ОБУЧЕНИЯ.md</code> и итоговый файл на своём компьютере. Они восстановят содержательный прогресс даже после очистки браузера.</p><a class="button" href="#/help">Как восстановить обучение</a></div></div></section>`;
+  if (!started.length) return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Личный кабинет</div><h1>Ваш прогресс</h1><p class="lead">Откройте первый урок, и здесь появится быстрый путь к продолжению обучения.</p></div><div class="empty-state"><span>01</span><div><h2>Вы ещё не начали курс</h2><p>Выберите первое направление и двигайтесь в удобном темпе.</p><a class="button button-primary" href="#/courses">Выбрать курс</a></div></div></div></section>`;
+  return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Личный кабинет</div><h1>Ваш прогресс</h1><p class="lead">Здесь хранится навигация. Сами учебные результаты остаются в сохранённых вами документах.</p></div><div class="course-progress-list">${started.map(({ course, progress }) => { const count = (progress.completedLessons || []).length; const percent = Math.round((count / course.lessons) * 100); return `<article class="progress-card progress-card-wide"><div class="progress-ring" style="--progress:${Math.round((count / course.lessons) * 360)}deg"><span>${percent}%</span></div><div><span class="eyebrow">Продолжить обучение</span><h2>${escapeHtml(course.title)}</h2><p>${count} из ${course.lessons} уроков завершено</p><div class="cluster"><a class="button button-primary" href="#/course/${course.id}/lesson/${progress.lastOpenedLesson || 1}">Продолжить</a><a class="button" href="#/course/${course.id}">Программа курса</a></div></div></article>`; }).join('')}</div><div class="passport-note"><span>Как не потерять прогресс</span><div><h2>Сохраняйте паспорт обучения</h2><p>После каждого занятия нейрокуратор обновляет краткую историю вашего обучения. Она поможет продолжить с нужного места даже в новом диалоге.</p><a class="text-link" href="#/help">Как восстановить обучение →</a></div></div></div></section>`;
 }
 
 export function helpView() {
-  return `<section class="page"><div class="container"><div class="page-head"><div class="eyebrow">Поддержка самостоятельного обучения</div><h1>Помощь</h1><p class="lead">Короткие ответы о файлах, нейрокураторе, безопасности и восстановлении прогресса.</p></div><div class="faq"><details open><summary>С чего начать первый курс?</summary><p>Скачайте стартовый комплект, распакуйте его в отдельную папку и откройте урок 1. Для первого шага файлы загружать не нужно.</p></details><details><summary>Где выполняются задания?</summary><p>Обсуждение и проверка проходят в GPTs-нейрокураторе. Контрольные запросы уроков 3–6 запускаются в новом обычном чате ChatGPT, чтобы учебные инструкции не влияли на результат.</p></details><details><summary>Как продолжить в новом диалоге?</summary><p>Загрузите актуальный <code>ПАСПОРТ_ОБУЧЕНИЯ.md</code> и итоговые файлы, перечисленные на странице следующего урока. Нейрокуратор восстановит точку обучения по ним.</p></details><details><summary>Что делать после очистки браузера?</summary><p>Навигационные отметки сайта исчезнут, но учебные результаты останутся в файлах. Откройте нужный курс, затем восстановите обучение по паспорту.</p></details><details><summary>Можно ли загружать рабочие документы?</summary><p>Только если у вас есть право их передавать. Сначала удалите ФИО, контакты, пароли, токены, коммерческие секреты и сведения третьих лиц. Для первого прохождения безопаснее использовать синтетический пример.</p></details><details><summary>Кто решает, можно ли перейти дальше?</summary><p>Вы. Проверка нейрокуратора носит рекомендательный характер. Он объясняет риски и ошибки, но не запрещает переход к следующему уроку.</p></details></div></div></section>`;
+  return `<section class="page"><div class="container help-grid"><div class="page-head"><div class="eyebrow">Поддержка</div><h1>Помощь без сложных инструкций</h1><p class="lead">Всё, что нужно знать о материалах, нейрокураторе и сохранении прогресса.</p></div><div class="faq"><details open><summary>С чего начать первый курс?</summary><p>Откройте первый урок и следуйте четырём шагам в блоке «Ваш маршрут». В начале ничего загружать не нужно.</p></details><details><summary>Где выполняются задания?</summary><p>Нейрокуратор помогает подготовить задание и проверяет результат. Некоторые контрольные запуски выполняются в отдельном обычном чате ChatGPT — сайт подскажет, когда это понадобится.</p></details><details><summary>Как продолжить обучение в новом диалоге?</summary><p>Загрузите актуальный паспорт обучения и результаты предыдущих занятий. Нейрокуратор восстановит вашу точку обучения.</p></details><details><summary>Что произойдёт после очистки браузера?</summary><p>Исчезнут только отметки на сайте. Сохранённые вами работы и паспорт обучения останутся на компьютере.</p></details><details><summary>Можно ли использовать рабочие документы?</summary><p>Только если у вас есть право их передавать. Удалите имена, контакты, пароли, коммерческие секреты и сведения третьих лиц. Для первого прохождения безопаснее взять учебный пример.</p></details><details><summary>Кто решает, когда переходить дальше?</summary><p>Вы. Нейрокуратор показывает ошибки и риски, но решение о завершении урока остаётся за обучающимся.</p></details></div></div></section>`;
 }
 
 export function notFoundView() {
-  return `<section class="page"><div class="container"><div class="empty-state stack"><div class="eyebrow">Ошибка 404</div><h1>Страница не найдена</h1><p class="muted">Проверьте адрес или вернитесь в каталог курсов.</p><a class="button button-primary" href="#/courses">Открыть каталог</a></div></div></section>`;
+  return `<section class="page"><div class="container"><div class="empty-state"><span>404</span><div><h1>Страница не найдена</h1><p>Вернитесь к программам и продолжите обучение.</p><a class="button button-primary" href="#/courses">Открыть курсы</a></div></div></div></section>`;
 }
 
 export function errorView(message) {
-  return `<section class="page"><div class="container error-state"><h1>Не удалось загрузить сайт</h1><p>${escapeHtml(message)}</p><button class="button button-primary" type="button" onclick="location.reload()">Повторить</button></div></section>`;
+  return `<section class="page"><div class="container error-state"><div class="eyebrow">Не удалось открыть страницу</div><h1>Попробуем ещё раз</h1><p>${escapeHtml(message)}</p><button class="button button-primary" type="button" onclick="location.reload()">Повторить</button></div></section>`;
 }

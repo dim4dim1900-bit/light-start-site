@@ -61,7 +61,12 @@ async function renderLesson(route) {
 
 function prepareLessonMarkdown(markdown) {
   const withoutSources = markdown.split(/\n## Источники урока\s*\n/i)[0];
-  const cleaned = withoutSources
+  const lessonOnly = withoutSources
+    .replace(/^#\s+.+\r?\n+/m, '')
+    .replace(/^Формат:\s*.+\r?\n+/mi, '')
+    .replace(/^Расчётное время:\s*.+\r?\n+/mi, '')
+    .replace(/## Как работать с нейрокуратором[\s\S]*?(?=## Что вы сделаете)/i, '');
+  const cleaned = lessonOnly
     .split('\n')
     .map((line) => line.replace(/\s*После проверки сохраните.*$/i, '').trimEnd())
     .filter((line, index, lines) => line.trim() || lines[index - 1]?.trim())
@@ -72,14 +77,23 @@ function prepareLessonMarkdown(markdown) {
 
 function replaceInternalPaths(markdown) {
   const replacements = new Map([
-    ['01_sources/course_01/demo_customer_reviews.md', 'учебные_данные/demo_customer_reviews.md'],
-    ['01_sources/course_01/demo_customer_reviews_new_week.md', 'учебные_данные/demo_customer_reviews_new_week.md'],
-    ['06_assignments/01_ai_fundamentals/templates/task_card.md', '01_урок/task_card_and_baseline.md'],
-    ['06_assignments/01_ai_fundamentals/templates/outcome_and_context.md', '02_урок/outcome_and_context.md'],
-    ['06_assignments/01_ai_fundamentals/templates/prompt_v1.md', '03_урок/prompt_v1_and_result.md'],
-    ['06_assignments/01_ai_fundamentals/templates/quality_matrix_and_prompt_v2.md', '04_урок/quality_matrix_and_prompt_v2.md'],
-    ['06_assignments/01_ai_fundamentals/templates/audit_and_revision.md', '05_урок/audit_and_revision.md'],
-    ['06_assignments/01_ai_fundamentals/templates/ai_process', '06_урок/ai-process/']
+    ['01_sources/course_01/demo_customer_reviews_new_week.md', '«Новая неделя отзывов»'],
+    ['01_sources/course_01/demo_customer_reviews.md', '«Учебные отзывы клиентов»'],
+    ['учебные_данные/demo_customer_reviews_new_week.md', '«Новая неделя отзывов»'],
+    ['учебные_данные/demo_customer_reviews.md', '«Учебные отзывы клиентов»'],
+    ['06_assignments/01_ai_fundamentals/templates/task_card.md', '«Карточка задачи и исходный результат»'],
+    ['06_assignments/01_ai_fundamentals/templates/outcome_and_context.md', '«Результат и контекст»'],
+    ['06_assignments/01_ai_fundamentals/templates/prompt_v1.md', '«Первая версия запроса»'],
+    ['06_assignments/01_ai_fundamentals/templates/quality_matrix_and_prompt_v2.md', '«Проверка качества и улучшенный запрос»'],
+    ['06_assignments/01_ai_fundamentals/templates/audit_and_revision.md', '«Аудит и исправленная версия»'],
+    ['06_assignments/01_ai_fundamentals/templates/ai_process', '«Комплект рабочего процесса»'],
+    ['01_урок/task_card_and_baseline.md', '«Карточка задачи и исходный результат»'],
+    ['02_урок/outcome_and_context.md', '«Результат и контекст»'],
+    ['03_урок/prompt_v1_and_result.md', '«Первая версия запроса и результат»'],
+    ['04_урок/quality_matrix_and_prompt_v2.md', '«Проверка качества и улучшенный запрос»'],
+    ['05_урок/audit_and_revision.md', '«Аудит и исправленная версия»'],
+    ['06_урок/ai-process/', '«Комплект рабочего процесса»'],
+    ['ПАСПОРТ_ОБУЧЕНИЯ.md', '«Паспорт обучения»']
   ]);
   let result = markdown;
   replacements.forEach((replacement, internalPath) => {
@@ -101,7 +115,11 @@ function localizeCourseTerms(markdown) {
     .replace(/получения baseline/gi, 'получения исходного результата')
     .replace(/baseline-запрос/gi, 'исходный запрос')
     .replace(/baseline-ответ/gi, 'исходный ответ')
-    .replace(/\bbaseline\b/gi, (term) => term[0] === 'B' ? 'Исходный результат' : 'исходный результат');
+    .replace(/\bbaseline\b/gi, (term) => term[0] === 'B' ? 'Исходный результат' : 'исходный результат')
+    .replace(/prompt v1/gi, 'первую версию запроса')
+    .replace(/prompt v2/gi, 'улучшенную версию запроса')
+    .replace(/red-team/gi, 'стресс-проверку')
+    .replace(/по SOP/gi, 'по рабочей инструкции');
   return localized.replace(/@@COURSE_CODE_(\d+)@@/g, (_, index) => protectedCode[Number(index)]);
 }
 
